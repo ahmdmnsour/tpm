@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:testo/Models/hard_to_reach.dart';
 import 'package:testo/second.dart';
 import './second.dart';
+
+import 'Models/dept.dart';
+import 'Models/hard_to_reach.dart';
+import 'Models/machine.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -9,8 +15,21 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? deptValue;
-  String? machineValue;
+  _HomePageState();
+
+  List<Dept>? depts;
+  @override
+  void initState() {
+    super.initState();
+    HtoReach place = HtoReach('سيور الحدافة', 'صعوبة الفحص',
+        'استخدام سلم لسهولة الوصول للسيور', 'الانتاج');
+    Machine mach = Machine('مكبس 45', [place]);
+    Dept dept = Dept('مكابس السخان', [mach]);
+    depts = [dept];
+  }
+
+  Dept? deptValue;
+  Machine? machineValue;
 
   @override
   Widget build(BuildContext context) {
@@ -33,21 +52,19 @@ class _HomePageState extends State<HomePage> {
                               borderRadius: BorderRadius.circular(50)),
                           constraints: const BoxConstraints(
                               maxWidth: 130, minWidth: double.minPositive),
-                          child: DropdownButton<String>(
+                          child: DropdownButton<Dept>(
                             underline: const SizedBox(),
                             isExpanded: true,
                             hint: const Text('القسم'),
                             value: deptValue,
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                deptValue = newValue!;
-                              });
+                            onChanged: (Dept? newValue) {
+                              setState(() => deptValue = newValue!);
                             },
-                            items: <String>['قسم 1', 'قسم 2', 'قسم 3', 'قسم 4']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
+                            items: depts
+                                ?.map<DropdownMenuItem<Dept>>((Dept? value) {
+                              return DropdownMenuItem<Dept>(
                                 value: value,
-                                child: Text(value),
+                                child: Text(value?.deptName),
                               );
                             }).toList(),
                           ),
@@ -60,25 +77,18 @@ class _HomePageState extends State<HomePage> {
                               borderRadius: BorderRadius.circular(50)),
                           constraints: const BoxConstraints(
                               maxWidth: 130, minWidth: double.minPositive),
-                          child: DropdownButton<String>(
+                          child: DropdownButton<Machine>(
                             underline: const SizedBox(),
                             isExpanded: true,
                             hint: const Text('الماكينة'),
                             value: machineValue,
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                machineValue = newValue!;
-                              });
+                            onChanged: (Machine? newValue) {
+                              setState(() => machineValue = newValue!);
                             },
-                            items: <String>[
-                              'ماكينة 1',
-                              'ماكينة 2',
-                              'ماكينة 3',
-                              'ماكينة 4'
-                            ].map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
+                            items: deptValue?.machines.map<DropdownMenuItem<Machine>>((Machine value) {
+                              return DropdownMenuItem<Machine>(
                                 value: value,
-                                child: Text(value),
+                                child: Text(value.machineName),
                               );
                             }).toList(),
                           ),
@@ -92,7 +102,7 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSpacing: 8.0,
                   children: List.generate(choices.length, (index) {
                     return Center(
-                      child: SelectCard(choice: choices[index]),
+                      child: SelectCard(choice: choices[index], machine: machineValue,),
                     );
                   })));
         }));
@@ -112,11 +122,18 @@ List<Choice> choices = const <Choice>[
   Choice(title: 'هيكل الماكينة', icon: Icons.precision_manufacturing),
   Choice(title: 'نظرية عمل الماكينة', icon: Icons.psychology),
   Choice(title: 'OPL', icon: Icons.settings),
+  Choice(title: 'نموذج لنعرف لماذا', icon: Icons.settings),
+  Choice(title: 'تحسينات', icon: Icons.settings),
+  Choice(title: 'حلقات ال tpm', icon: Icons.settings),
+  Choice(title: 'اعطال الماكينة', icon: Icons.settings),
+  Choice(title: 'مصادر التدريب', icon: Icons.settings),
+  Choice(title: 'خرائط التشحيم و التربيط والتنظيف', icon: Icons.settings),
 ];
 
 class SelectCard extends StatelessWidget {
-  const SelectCard({Key? key, required this.choice}) : super(key: key);
+  const SelectCard({Key? key, required this.choice, required this.machine}) : super(key: key);
   final Choice choice;
+  final Machine? machine;
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +141,7 @@ class SelectCard extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => SecondPage(title: choice.title)),
+            MaterialPageRoute(builder: (context) => SecondPage(choice.title, machine!)),
           );
         },
         child: Card(
