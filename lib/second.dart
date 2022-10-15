@@ -1,23 +1,28 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
-import 'Models/hard_to_reach.dart';
-import 'Models/machine.dart';
-
 class SecondPage extends StatefulWidget {
-  SecondPage(this.title, this.mach, {Key? key}) : super(key: key);
+  SecondPage(this.title, this.machine, this.jsonData, this.titleKey, {Key? key})
+      : super(key: key);
   String title;
-  Machine mach;
+  String machine;
+  String jsonData;
+  String titleKey;
 
   @override
-  SecondPageState createState() => SecondPageState(title, mach);
+  SecondPageState createState() =>
+      SecondPageState(title, machine, jsonData, titleKey);
 }
 
 class SecondPageState extends State<SecondPage> {
-  SecondPageState(this.title, this.mach);
+  SecondPageState(this.title, this.machine, this.jsonData, this.titleKey);
   String title;
-  Machine mach;
-  List<String> attr = ['نوع المشكلة', 'طريقة الازالة', 'الجهات المسئولة'];
-  List<String>? val;
+  String machine;
+  String jsonData;
+  String titleKey;
+
+  List<String> itemsTitle = [];
 
   @override
   Widget build(BuildContext context) {
@@ -27,46 +32,61 @@ class SecondPageState extends State<SecondPage> {
             appBar: AppBar(
               title: Text(title),
             ),
-            body: ListView.builder(
-                itemCount: mach.hardToReach.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                      child: ExpansionTile(
-                    title: Text(mach.hardToReach[index].placeName),
-                    children: [
-                      ListView.builder(
-                          itemCount: attr.length,
-                          shrinkWrap: true,
-                          physics: const ClampingScrollPhysics(),
-                          itemBuilder: (context, pos) {
-                            val = [
-                              mach.hardToReach[index].blockType,
-                              mach.hardToReach[index].removalMethod,
-                              mach.hardToReach[index].partiesConcerned
-                            ];
-                            return Row(
-                              children: [
-                                Flexible(
-                                  flex: 1,
-                                  fit: FlexFit.loose,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(15),
-                                    child: Text(attr[pos]),
-                                  ),
-                                ),
-                                Flexible(
-                                  flex: 2,
-                                  fit: FlexFit.tight,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(15),
-                                    child: Text(val![pos]),
-                                  ),
-                                ),
-                              ],
-                            );
-                          })
-                    ],
-                  ));
-                })));
+            body: FutureBuilder(
+              future: DefaultAssetBundle.of(context).loadString(jsonData),
+              builder: (((context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Text('لا يوجد معلومات');
+                } else {
+                  var newData = json.decode(snapshot.data.toString());
+                  for (int i = 0; i < newData.length; i++) {
+                    if (newData[i]['الماكينة'] == machine) {
+                      itemsTitle.add(newData[i][titleKey]);
+                    }
+                  }
+
+                  return ListView.builder(
+                      itemCount: 5,
+                      itemBuilder: (context, index) {
+                        return Card(
+                            child: ExpansionTile(
+                          title: Text(itemsTitle[index]),
+                          children: [
+                            ListView.builder(
+                                itemCount: newData[index].length,
+                                shrinkWrap: true,
+                                physics: const ClampingScrollPhysics(),
+                                itemBuilder: (context, pos) {
+                                  return Row(
+                                    children: [
+                                      Flexible(
+                                        flex: 1,
+                                        fit: FlexFit.loose,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(15),
+                                          child: Text(newData[index]
+                                              .keys
+                                              .elementAt(pos)),
+                                        ),
+                                      ),
+                                      Flexible(
+                                        flex: 2,
+                                        fit: FlexFit.tight,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(15),
+                                          child: Text(newData[index]
+                                              .values
+                                              .elementAt(pos)),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                })
+                          ],
+                        ));
+                      });
+                }
+              })),
+            )));
   }
 }

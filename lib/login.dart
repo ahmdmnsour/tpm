@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:testo/home.dart';
+import 'package:testo/testin.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -57,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomePage()),
+                  MaterialPageRoute(builder: (context) => const TestPage()),
                 );
               },
               child: const Text("للدخول إضغط هنا"),
